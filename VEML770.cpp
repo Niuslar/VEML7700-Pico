@@ -45,7 +45,7 @@ float VEML7700::ReadLux()
 
 void VEML7700::Enable(bool enable)
 {
-    /* Clean bits */
+    /* Clear bits */
     ALS_CONF_0_REG &= ~(1 << ALS_CONF_SD_BIT);
 
     /* Set bits */
@@ -57,7 +57,7 @@ void VEML7700::Enable(bool enable)
 
 void VEML7700::SetGain(gainValues_t newGain)
 {
-    /* Clean bits */
+    /* Clear bits */
     ALS_CONF_0_REG &= ~(3 << ALS_CONF_GAIN_BIT);
 
     /* Set bits */
@@ -69,7 +69,7 @@ void VEML7700::SetGain(gainValues_t newGain)
 
 void VEML7700::SetIntegrationTiming(integrationTime_t integrationTiming)
 {
-    /* Clean bits */
+    /* Clear bits */
     ALS_CONF_0_REG &= ~(15 << ALS_CONF_IT_BIT);
 
     /* Set bits */
@@ -81,7 +81,7 @@ void VEML7700::SetIntegrationTiming(integrationTime_t integrationTiming)
 
 void VEML7700::SetPersistenceProtect(persProt_t protNumber)
 {
-    /* Clean bits */
+    /* Clear bits */
     ALS_CONF_0_REG &= ~(3 << ALS_CONF_PERS_BIT);
 
     /* Set bits */
@@ -93,7 +93,7 @@ void VEML7700::SetPersistenceProtect(persProt_t protNumber)
 
 void VEML7700::EnableInterrupt(bool enable)
 {
-    /* Clean bits */
+    /* Clear bits */
     ALS_CONF_0_REG &= ~(1 << ALS_CONF_INT_EN_BIT);
 
     /* Set bits */
