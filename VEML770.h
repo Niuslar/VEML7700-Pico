@@ -90,7 +90,7 @@ public:
     void SetPersistenceProtect(persProt_t protNumber);
 
     /**
-     * @brief Enable Interrupt that will be set the ALS_IF_L or ALS_IF_H bits when the programmed number of measurements (ALS_PERS) stay above/below the set threshold.
+     * @brief Enable Interrupt that will set the ALS_IF_L or ALS_IF_H bits when the programmed number of measurements (ALS_PERS) stay above/below the set threshold.
      * @param enable True to enable interrupt. False to disable it 
     */
     void EnableInterrupt(bool enable);
