@@ -22,14 +22,14 @@ void VEML7700::Init(uint8_t sdaPin, uint8_t sclPin, i2c_inst_t *i2cInstance, uin
 
     /* Setup VEML770 sensor */
     /* Default values are
-     *  ALS GAIN = x1
+     *  ALS GAIN = x1/8  -> To avoid oversaturation as explained in application notes
      *  ALS IT   = 100 ms
      *  ALS PERS = 1
      *  ALS INT EN = 0
      *  ALS SD (shutdown) = 0 (Turn on when Init is called)
      */
 
-    ALS_CONF_0_REG = 0;
+    ALS_CONF_0_REG = 0 | ((uint8_t)m_gainValue << ALS_CONF_GAIN_BIT);
     WriteRegister(&ALS_CONF_0_COMMAND, ALS_CONF_0_REG);
 
     /* Wait 2.5ms before the first reading */
@@ -38,9 +38,51 @@ void VEML7700::Init(uint8_t sdaPin, uint8_t sclPin, i2c_inst_t *i2cInstance, uin
 
 float VEML7700::ReadLux()
 {
-    uint16_t wholeWhite = ReadRegister(&ALS_COMMAND);
+    uint16_t alsDigitalValue = ReadRegister(&ALS_COMMAND);
 
-    return (float)wholeWhite;
+    int multiplicationFactor = 1;
+
+    switch (m_integrationTime)
+    {
+    case integrationTime_t::ALS_IT_400MS:
+        multiplicationFactor *= 2;
+        break;
+    case integrationTime_t::ALS_IT_200MS:
+        multiplicationFactor *= 4;
+        break;
+    case integrationTime_t::ALS_IT_100MS:
+        multiplicationFactor *= 8;
+        break;
+    case integrationTime_t::ALS_IT_50MS:
+        multiplicationFactor *= 16;
+        break;
+    case integrationTime_t::ALS_IT_25MS:
+        multiplicationFactor *= 32;
+        break;
+    default:
+        break;
+    }
+
+    switch (m_gainValue)
+    {
+    case gainValues_t::ALS_GAIN_X1:
+        multiplicationFactor *= 2;
+        break;
+    case gainValues_t::ALS_GAIN_X1_4:
+        multiplicationFactor *= 8;
+        break;
+    case gainValues_t::ALS_GAIN_X1_8:
+        multiplicationFactor *= 16;
+        break;
+    default:
+        break;
+    }
+
+    float actualResolution = MAX_RESOLUTION * multiplicationFactor;
+
+    float luxReading = alsDigitalValue * actualResolution;
+
+    return luxReading;
 }
 
 void VEML7700::Enable(bool enable)
@@ -49,7 +91,7 @@ void VEML7700::Enable(bool enable)
     ALS_CONF_0_REG &= ~(1 << ALS_CONF_SD_BIT);
 
     /* Set bits */
-    ALS_CONF_0_REG |= (enable << ALS_CONF_SD_BIT);
+    ALS_CONF_0_REG |= (!enable << ALS_CONF_SD_BIT);
 
     /* Write config */
     WriteRegister(&ALS_CONF_0_COMMAND, ALS_CONF_0_REG);
@@ -57,6 +99,7 @@ void VEML7700::Enable(bool enable)
 
 void VEML7700::SetGain(gainValues_t newGain)
 {
+    m_gainValue = newGain;
     /* Clear bits */
     ALS_CONF_0_REG &= ~(3 << ALS_CONF_GAIN_BIT);
 
@@ -69,6 +112,8 @@ void VEML7700::SetGain(gainValues_t newGain)
 
 void VEML7700::SetIntegrationTiming(integrationTime_t integrationTiming)
 {
+    m_integrationTime = integrationTiming;
+
     /* Clear bits */
     ALS_CONF_0_REG &= ~(15 << ALS_CONF_IT_BIT);
 
@@ -130,7 +175,7 @@ void VEML7700::WriteRegister(const uint8_t *regAddr, uint16_t value)
     const int messageLen = 3;
     uint8_t message[messageLen]; // Include command and data to send
     message[0] = *regAddr;
-    message[1] = value >> 8;    // MSB
-    message[2] = value && 0xFF; // LSB
-    i2c_write_timeout_us(m_i2cX, m_deviceAddress, message, messageLen, true, m_defaultTimeout);
+    message[1] = value & 0xFF;   // LSB
+    message[2] = value  >> 8; // MSB
+    i2c_write_timeout_us(m_i2cX, m_deviceAddress, message, messageLen, false, m_defaultTimeout);
 }

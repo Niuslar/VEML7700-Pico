@@ -12,9 +12,9 @@
 #include "hardware/gpio.h"
 #include <stdint.h>
 
-#define ALS_CONF_GAIN_BIT   12
-#define ALS_CONF_IT_BIT     9
-#define ALS_CONF_PERS_BIT   5
+#define ALS_CONF_GAIN_BIT   11
+#define ALS_CONF_IT_BIT     6
+#define ALS_CONF_PERS_BIT   4
 #define ALS_CONF_INT_EN_BIT 1
 #define ALS_CONF_SD_BIT     0
 
@@ -123,11 +123,14 @@ private:
     static constexpr uint8_t WHITE_COMMAND = 0x05;
     static constexpr uint8_t ALS_INT_COMMAND = 0x06;
 
-    // ALSConfigReg_t m_alsConfig;
+    gainValues_t m_gainValue = gainValues_t::ALS_GAIN_X1_8; // Gain X1 is default
+    integrationTime_t m_integrationTime = integrationTime_t::ALS_IT_100MS; // 100 ms is default
 
     i2c_inst_t *m_i2cX = nullptr;
     uint8_t m_deviceAddress = 0x10;
     uint8_t m_rxBuffer[2] = {0};
+
+    static constexpr float MAX_RESOLUTION = 0.0036; //Resolution with a gain X2 and integration time of 800ms
 
     uint32_t m_defaultTimeout = 100000; // 100 ms is the default timeout for I2C messages
 };
