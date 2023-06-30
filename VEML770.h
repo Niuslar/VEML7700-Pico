@@ -106,6 +106,12 @@ public:
      * @param lowThreshold Min threshold in lux 
     */
     void SetLowLimit(uint16_t lowThreshold);
+
+    /**
+     * @brief CheckInterruptStatus Read register status
+     * @return 0 if no interrupt was triggered, 1 if the low threshold was exceeded and 2 if the high threshold was exceeded
+    */
+    uint8_t CheckInterruptStatus();
 private:
 
     uint16_t ReadRegister(const uint8_t *regAddr);

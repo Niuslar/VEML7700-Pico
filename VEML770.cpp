@@ -159,6 +159,24 @@ void VEML7700::SetLowLimit(uint16_t lowThreshold)
     WriteRegister(&ALS_WL_COMMAND, lowThreshold);
 }
 
+uint8_t VEML7700::CheckInterruptStatus()
+{
+    uint16_t interruptRegister = ReadRegister(&ALS_INT_COMMAND);
+
+    if (interruptRegister & (1 << 15))
+    {
+        // Low threshold
+        return 1;
+    }
+    else if (interruptRegister & (1 << 14))
+    {
+        // High threshol
+        return 2;
+    }
+
+    return 0;
+}
+
 /* Private Methods */
 
 uint16_t VEML7700::ReadRegister(const uint8_t *regAddr)
