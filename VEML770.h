@@ -29,7 +29,7 @@ public:
      * @param sdaPin GPIO Pin to be configured as SDA (Please refer to Pico's Pinout to check pins available)
      * @param sclPin GPIO Pin to be configures as SCL
      * @param i2cInstance i2c0 or i2c1
-     * @param baudRate 100000 (STANDART) or 400000 (FAST)
+     * @param baudRate 100000 (STANDARD) or 400000 (FAST)
      */
     void Init(uint8_t sdaPin = PICO_DEFAULT_I2C_SDA_PIN, uint8_t sclPin = PICO_DEFAULT_I2C_SCL_PIN, i2c_inst_t *i2cInstance = i2c0, uint32_t baudRate = 100 * 1000);
 
