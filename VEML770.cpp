@@ -40,43 +40,7 @@ float VEML7700::ReadLux()
 {
     uint16_t alsDigitalValue = ReadRegister(&ALS_COMMAND);
 
-    int multiplicationFactor = 1;
-
-    switch (m_integrationTime)
-    {
-    case integrationTime_t::ALS_IT_400MS:
-        multiplicationFactor *= 2;
-        break;
-    case integrationTime_t::ALS_IT_200MS:
-        multiplicationFactor *= 4;
-        break;
-    case integrationTime_t::ALS_IT_100MS:
-        multiplicationFactor *= 8;
-        break;
-    case integrationTime_t::ALS_IT_50MS:
-        multiplicationFactor *= 16;
-        break;
-    case integrationTime_t::ALS_IT_25MS:
-        multiplicationFactor *= 32;
-        break;
-    default:
-        break;
-    }
-
-    switch (m_gainValue)
-    {
-    case gainValues_t::ALS_GAIN_X1:
-        multiplicationFactor *= 2;
-        break;
-    case gainValues_t::ALS_GAIN_X1_4:
-        multiplicationFactor *= 8;
-        break;
-    case gainValues_t::ALS_GAIN_X1_8:
-        multiplicationFactor *= 16;
-        break;
-    default:
-        break;
-    }
+    uint16_t multiplicationFactor = GetMultiplicationFactor();
 
     float actualResolution = MAX_RESOLUTION * multiplicationFactor;
 
@@ -150,13 +114,14 @@ void VEML7700::EnableInterrupt(bool enable)
 
 void VEML7700::SetHighLimit(uint16_t highThreshold)
 {
-    WriteRegister(&ALS_WH_COMMAND, highThreshold);
+    uint16_t digitalValue = LuxToDigital(highThreshold);
+    WriteRegister(&ALS_WH_COMMAND, digitalValue);
 }
 
 void VEML7700::SetLowLimit(uint16_t lowThreshold)
 {
-    /* Write config */
-    WriteRegister(&ALS_WL_COMMAND, lowThreshold);
+    uint16_t digitalValue = LuxToDigital(lowThreshold);
+    WriteRegister(&ALS_WL_COMMAND, digitalValue);
 }
 
 uint8_t VEML7700::CheckInterruptStatus()
@@ -193,7 +158,60 @@ void VEML7700::WriteRegister(const uint8_t *regAddr, uint16_t value)
     const int messageLen = 3;
     uint8_t message[messageLen]; // Include command and data to send
     message[0] = *regAddr;
-    message[1] = value & 0xFF;   // LSB
-    message[2] = value  >> 8; // MSB
+    message[1] = value & 0xFF; // LSB
+    message[2] = value >> 8;   // MSB
     i2c_write_timeout_us(m_i2cX, m_deviceAddress, message, messageLen, false, m_defaultTimeout);
+}
+
+uint16_t VEML7700::LuxToDigital(uint16_t luxValue)
+{
+    uint16_t multiplicationFactor = GetMultiplicationFactor();
+    float actualResolution = MAX_RESOLUTION * multiplicationFactor;
+
+    float digitalValue = luxValue / actualResolution;
+
+    return (uint16_t)digitalValue;
+}
+
+uint16_t VEML7700::GetMultiplicationFactor()
+{
+    uint16_t multiplicationFactor = 1;
+
+    switch (m_integrationTime)
+    {
+    case integrationTime_t::ALS_IT_400MS:
+        multiplicationFactor *= 2;
+        break;
+    case integrationTime_t::ALS_IT_200MS:
+        multiplicationFactor *= 4;
+        break;
+    case integrationTime_t::ALS_IT_100MS:
+        multiplicationFactor *= 8;
+        break;
+    case integrationTime_t::ALS_IT_50MS:
+        multiplicationFactor *= 16;
+        break;
+    case integrationTime_t::ALS_IT_25MS:
+        multiplicationFactor *= 32;
+        break;
+    default:
+        break;
+    }
+
+    switch (m_gainValue)
+    {
+    case gainValues_t::ALS_GAIN_X1:
+        multiplicationFactor *= 2;
+        break;
+    case gainValues_t::ALS_GAIN_X1_4:
+        multiplicationFactor *= 8;
+        break;
+    case gainValues_t::ALS_GAIN_X1_8:
+        multiplicationFactor *= 16;
+        break;
+    default:
+        break;
+    }
+
+    return multiplicationFactor;
 }

@@ -119,6 +119,10 @@ private:
     /* Send a 16-bit value as 2 8-bit values */
     void     WriteRegister(const uint8_t *regAddr, uint16_t value);
 
+    uint16_t LuxToDigital(uint16_t luxValue);
+
+    uint16_t GetMultiplicationFactor();
+
     uint16_t ALS_CONF_0_REG = 0; // Hold the current config for the als 
 
     static constexpr uint8_t ALS_CONF_0_COMMAND = 0x00;
